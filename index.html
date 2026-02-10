@@ -6,7 +6,12 @@
     <title>Sites Management Tool</title>
 
     <style>
-        /* 배경 이미지 레이어 설정 */
+        :root {
+            --bg-color: rgba(0, 0, 0, 0.55);
+            --text-color: #eee;
+            --link-color: #ffd966;
+        }
+
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -16,22 +21,9 @@
             background-size: cover;
             background-position: center;
             position: relative;
+            color: var(--text-color);
         }
 
-        /* 배경 불투명도 80% 조절을 위한 오버레이 */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            /* 80% 불투명도 (0.8) */
-            z-index: -1;
-        }
-
-        /* ===== 메뉴 ===== */
         .menu-row {
             display: flex;
             gap: 16px;
@@ -43,8 +35,7 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             padding: 14px;
-            background: rgba(245, 247, 250, 0.9);
-            /* 메뉴 박스도 살짝 투명하게 */
+            background: var(--bg-color);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
             flex: 1;
         }
@@ -54,7 +45,6 @@
             font-size: 15px;
         }
 
-        /* ===== 공통 입력창 높이 통일 ===== */
         input,
         select {
             height: 32px;
@@ -63,7 +53,6 @@
             font-size: 14px;
         }
 
-        /* ===== 검색 ===== */
         .search-row {
             margin-top: 10px;
             display: flex;
@@ -74,13 +63,12 @@
             flex: 1;
         }
 
-        /* ===== 즐겨찾기 바 ===== */
         .fav-bar {
             border: 1px solid #ccc;
             border-radius: 10px;
             padding: 10px;
             margin-bottom: 16px;
-            background: rgba(255, 248, 230, 0.9);
+            background: var(--bg-color);
         }
 
         .fav-item {
@@ -96,16 +84,25 @@
             font-size: 14px;
         }
 
+        body[style*="--bg-color: rgba(0, 0, 0, 0.55)"] .fav-item {
+            background: #333;
+            border-color: #555;
+        }
+
         .fav-item a {
             text-decoration: none;
-            color: #333;
+            color: #333 !important;
+            font-weight: bold;
+        }
+
+        body[style*="--bg-color: rgba(0, 0, 0, 0.55)"] .fav-item a {
+            color: #ffd966 !important;
         }
 
         .fav-item a:hover {
             text-decoration: underline;
         }
 
-        /* ===== 메인 ===== */
         .main {
             display: flex;
             gap: 18px;
@@ -117,7 +114,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             padding: 10px;
-            background: rgba(250, 250, 250, 0.9);
+            background: var(--bg-color);
         }
 
         .group-item {
@@ -129,13 +126,16 @@
         }
 
         .group-item:hover {
-            background: #e9f1ff;
+            background: rgba(224, 223, 221, 0.35);
+            color: #ffd966;
         }
 
         .group-item.active {
-            background: #dbe8ff;
-            border-color: #7aa2ff;
+            background: rgba(224, 223, 221, 0.35);
+            border-color: #ffd966;
+            color: #ffd966;
             font-weight: bold;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         .site-panel {
@@ -146,7 +146,7 @@
             padding: 8px;
             border: 1px solid #aaa;
             margin: 6px 0;
-            background: rgba(249, 249, 249, 0.9);
+            background: var(--bg-color);
             border-radius: 6px;
             cursor: grab;
             display: flex;
@@ -160,8 +160,8 @@
         }
 
         .site a {
+            color: var(--link-color);
             text-decoration: none;
-            color: #0366d6;
         }
 
         .site a:hover {
@@ -188,19 +188,24 @@
             margin-left: 4px;
             cursor: pointer;
         }
+
+        #currentGroupTitle {
+            color: #000000;
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="menu-row">
-
         <div class="menu-box">
             <h3>💾 사이트 백업 / 검색</h3>
             <button onclick="backupData()">백업</button>
             <button onclick="restoreClick()">복원</button>
             <button onclick="bgFile.click()">배경</button>
             <button onclick="resetBg()" style="color:red;">배경삭제</button>
+            <button onclick="toggleTheme()">🌗 다크/라이트 토글</button>
             <input type="file" id="restoreFile" hidden accept=".json">
             <input type="file" id="bgFile" hidden accept="image/*">
 
@@ -209,7 +214,6 @@
                 <button onclick="searchGoogle()">구글</button>
                 <button onclick="searchNaver()">네이버</button>
             </div>
-
         </div>
 
         <div class="menu-box">
@@ -221,11 +225,10 @@
         <div class="menu-box">
             <h3>➕ 사이트 / 폴더 추가</h3>
             <input id="nameInput" placeholder="이름"><br>
-            <input id="urlInput" placeholder="URL 또는 폴더"><br>
-            <select id="groupSelect"></select>
+            <input id="urlInput" placeholder="URL 또는 폴더" style="margin-top:4px;"><br>
+            <select id="groupSelect" style="margin-top:4px;"></select>
             <button onclick="addSite()">추가</button>
         </div>
-
     </div>
 
     <div class="fav-bar">
@@ -234,9 +237,7 @@
     </div>
 
     <div class="main">
-
         <div class="group-panel" id="groupPanel"></div>
-
         <div class="site-panel">
             <div class="group-title-bar">
                 <h3 id="currentGroupTitle"></h3>
@@ -245,233 +246,172 @@
             </div>
             <div id="siteList"></div>
         </div>
-
     </div>
 
     <script>
+        // --- IndexedDB 로직 추가 ---
+        const DB_NAME = "SiteManagerDB";
+        const STORE_NAME = "Assets";
+        let db;
+
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = e => {
+            db = e.target.result;
+            db.createObjectStore(STORE_NAME);
+        };
+        request.onsuccess = e => {
+            db = e.target.result;
+            loadData(); // DB 연결 후 데이터 로드
+        };
+
+        function saveBgToDB(base64) {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).put(base64, "backgroundImage");
+        }
+
+        function loadBgFromDB(callback) {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const req = tx.objectStore(STORE_NAME).get("backgroundImage");
+            req.onsuccess = () => callback(req.result);
+        }
+
+        function deleteBgFromDB() {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).delete("backgroundImage");
+        }
+        // -------------------------
 
         let groups = [];
         let sites = [];
         let favorites = [];
-        let bgImg = ""; // 배경 이미지 데이터
-
         let selectedGroup = null;
         let editIndex = null;
-
         let dragSiteIndex = null;
         let dragGroupIndex = null;
         let dragFavIndex = null;
+        let darkMode = true;
 
-        /* ===== 검색 ===== */
-        function getSearchText() {
-            return encodeURIComponent(searchInput.value.trim());
-        }
-        function searchGoogle() {
-            const q = getSearchText();
-            if (!q) return;
-            window.open("https://www.google.com/search?q=" + q, "_blank");
-        }
-        function searchNaver() {
-            const q = getSearchText();
-            if (!q) return;
-            window.open("https://search.naver.com/search.naver?query=" + q, "_blank");
-        }
+        const favBar = document.getElementById('favBar');
+        const groupPanel = document.getElementById('groupPanel');
+        const siteList = document.getElementById('siteList');
+        const currentGroupTitle = document.getElementById('currentGroupTitle');
+        const groupSelect = document.getElementById('groupSelect');
+        const searchInput = document.getElementById('searchInput');
+        const newGroupInput = document.getElementById('newGroupInput');
+        const nameInput = document.getElementById('nameInput');
+        const urlInput = document.getElementById('urlInput');
+        const restoreFile = document.getElementById('restoreFile');
+        const bgFile = document.getElementById('bgFile');
 
-        /* ===== 배경 이미지 처리 ===== */
+        function getSearchText() { return encodeURIComponent(searchInput.value.trim()); }
+        function searchGoogle() { const q = getSearchText(); if (!q) return; window.open("https://www.google.com/search?q=" + q, "_blank"); }
+        function searchNaver() { const q = getSearchText(); if (!q) return; window.open("https://search.naver.com/search.naver?query=" + q, "_blank"); }
+
         bgFile.addEventListener("change", e => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
-                bgImg = ev.target.result;
+                const bgImg = ev.target.result;
                 applyBg(bgImg);
-                saveData();
+                saveBgToDB(bgImg); // IndexedDB에 대용량 저장
             };
             reader.readAsDataURL(file);
         });
 
-        function applyBg(url) {
-            if (url) {
-                document.body.style.backgroundImage = `url('${url}')`;
-            } else {
-                document.body.style.backgroundImage = "none";
-            }
-        }
+        function applyBg(url) { document.body.style.backgroundImage = url ? `url('${url}')` : "none"; }
+        function resetBg() { if (confirm("배경 이미지를 삭제할까요?")) { applyBg(""); deleteBgFromDB(); } }
 
-        function resetBg() {
-            if (confirm("배경 이미지를 삭제할까요?")) {
-                bgImg = "";
-                applyBg("");
-                saveData();
-            }
-        }
-
-        /* ===== URL ===== */
         function normalizeUrl(input) {
             if (!input) return "";
             input = input.trim();
             if (/^(https?:\/\/|file:\/\/)/i.test(input)) return input;
-            if (/^[a-zA-Z]:[\\/]/.test(input))
-                return "file:///" + input.replace(/\\/g, "/");
-            if (/^\\\\/.test(input))
-                return "file:" + input.replace(/\\/g, "/");
+            if (/^[a-zA-Z]:[\\/]/.test(input)) return "file:///" + input.replace(/\\/g, "/");
+            if (/^\\\\/.test(input)) return "file:" + input.replace(/\\/g, "/");
             if (input.includes(".")) return "https://" + input;
             return input;
         }
-        function getIcon(url) {
-            return url.startsWith("file://") ? "📁" : "🌐";
+        function getIcon(url) { return url.startsWith("file://") ? "📁" : "🌐"; }
+
+        function saveData() { 
+            // 배경이미지는 제외하고 LocalStorage에 저장
+            localStorage.setItem("siteData", JSON.stringify({ groups, sites, favorites, darkMode })); 
         }
 
-        /* ===== 저장 ===== */
-        function saveData() {
-            localStorage.setItem("siteData",
-                JSON.stringify({ groups, sites, favorites, bgImg }));
-        }
         function loadData() {
             const d = JSON.parse(localStorage.getItem("siteData"));
-            if (d) {
-                groups = d.groups || [];
-                sites = d.sites || [];
-                favorites = d.favorites || [];
-                bgImg = d.bgImg || "";
-                applyBg(bgImg);
+            if (d) { 
+                groups = d.groups || []; 
+                sites = d.sites || []; 
+                favorites = d.favorites || []; 
+                darkMode = d.darkMode !== false; 
+                applyTheme(); 
             }
+            // 배경이미지는 IndexedDB에서 비동기로 가져옴
+            loadBgFromDB(img => {
+                if (img) applyBg(img);
+                renderAll();
+            });
         }
 
-        /* ===== 백업/복원 ===== */
-        function backupData() {
-            const blob = new Blob(
-                [JSON.stringify({ groups, sites, favorites, bgImg }, null, 2)],
-                { type: "application/json" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "sites_backup.json";
-            a.click();
+        async function backupData() { 
+            loadBgFromDB(bgImg => {
+                const blob = new Blob([JSON.stringify({ groups, sites, favorites, bgImg, darkMode }, null, 2)], { type: "application/json" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "sites_backup.json";
+                a.click();
+            });
         }
+
         function restoreClick() { restoreFile.click(); }
-
         restoreFile.addEventListener("change", e => {
-            const f = e.target.files[0];
-            if (!f) return;
+            const f = e.target.files[0]; if (!f) return;
             const r = new FileReader();
             r.onload = ev => {
                 const d = JSON.parse(ev.target.result);
-                groups = d.groups || [];
-                sites = d.sites || [];
-                favorites = d.favorites || [];
-                bgImg = d.bgImg || "";
-                applyBg(bgImg);
-                saveData();
+                groups = d.groups || []; 
+                sites = d.sites || []; 
+                favorites = d.favorites || []; 
+                darkMode = d.darkMode !== false;
+                
+                if (d.bgImg) {
+                    applyBg(d.bgImg);
+                    saveBgToDB(d.bgImg);
+                } else {
+                    applyBg("");
+                    deleteBgFromDB();
+                }
+                
+                applyTheme(); 
+                saveData(); 
                 renderAll();
             };
             r.readAsText(f);
         });
 
-        /* ===== 그룹 ===== */
-        function addGroup() {
-            const n = newGroupInput.value.trim();
-            if (!n || groups.includes(n)) return;
-            groups.push(n);
-            newGroupInput.value = "";
-            saveData(); renderAll();
-        }
+        function addGroup() { const n = newGroupInput.value.trim(); if (!n || groups.includes(n)) return; groups.push(n); newGroupInput.value = ""; saveData(); renderAll(); }
+        function renameGroup() { if (!selectedGroup) return; const n = prompt("새 이름", selectedGroup); if (!n || groups.includes(n)) return; groups = groups.map(g => g === selectedGroup ? n : g); sites.forEach(s => { if (s.group === selectedGroup) s.group = n; }); selectedGroup = n; saveData(); renderAll(); }
+        function deleteGroup() { if (!selectedGroup) return; if (!confirm("그룹 삭제?")) return; groups = groups.filter(g => g !== selectedGroup); sites.filter(s => s.group === selectedGroup).forEach(s => { const idx = sites.indexOf(s); favorites = favorites.filter(f => f !== idx); }); sites = sites.filter(s => s.group !== selectedGroup); selectedGroup = groups[0] || null; saveData(); renderAll(); }
 
-        function renameGroup() {
-            if (!selectedGroup) return;
-            const n = prompt("새 이름", selectedGroup);
-            if (!n || groups.includes(n)) return;
-            groups = groups.map(g => g === selectedGroup ? n : g);
-            sites.forEach(s => { if (s.group === selectedGroup) s.group = n; });
-            selectedGroup = n;
-            saveData(); renderAll();
-        }
+        function addSite() { const name = nameInput.value.trim(); let url = urlInput.value.trim(); const group = groupSelect.value; if (!name || !url) return; url = normalizeUrl(url); if (editIndex !== null) { sites[editIndex] = { name, url, group }; editIndex = null; } else { sites.push({ name, url, group }); } nameInput.value = ""; urlInput.value = ""; saveData(); renderSites(); renderFavorites(); }
+        function editSite(i) { nameInput.value = sites[i].name; urlInput.value = sites[i].url; groupSelect.value = sites[i].group; editIndex = i; }
+        function deleteSite(i) { if (!confirm("삭제?")) return; sites.splice(i, 1); favorites = favorites.filter(x => x !== i).map(x => x > i ? x - 1 : x); saveData(); renderAll(); }
 
-        function deleteGroup() {
-            if (!selectedGroup) return;
-            if (!confirm("그룹 삭제?")) return;
-            groups = groups.filter(g => g !== selectedGroup);
-            sites.filter(s => s.group === selectedGroup).forEach(s => {
-                const idx = sites.indexOf(s);
-                favorites = favorites.filter(f => f !== idx);
-            });
-            sites = sites.filter(s => s.group !== selectedGroup);
-            selectedGroup = groups[0] || null;
-            saveData(); renderAll();
-        }
-
-        /* ===== 사이트 ===== */
-        function addSite() {
-            const name = nameInput.value.trim();
-            let url = urlInput.value.trim();
-            const group = groupSelect.value;
-            if (!name || !url) return;
-            url = normalizeUrl(url);
-
-            if (editIndex !== null) {
-                sites[editIndex] = { name, url, group };
-                editIndex = null;
-            } else {
-                sites.push({ name, url, group });
-            }
-
-            nameInput.value = "";
-            urlInput.value = "";
-            saveData(); renderSites(); renderFavorites();
-        }
-
-        function editSite(i) {
-            nameInput.value = sites[i].name;
-            urlInput.value = sites[i].url;
-            groupSelect.value = sites[i].group;
-            editIndex = i;
-        }
-
-        function deleteSite(i) {
-            if (!confirm("삭제?")) return;
-            sites.splice(i, 1);
-            favorites = favorites.filter(x => x !== i).map(x => x > i ? x - 1 : x);
-            saveData(); renderAll();
-        }
-
-        /* ===== 즐겨찾기 ===== */
-        function toggleFavorite(i) {
-            if (favorites.includes(i))
-                favorites = favorites.filter(x => x !== i);
-            else
-                favorites.push(i);
-            saveData(); renderFavorites(); renderSites();
-        }
-
+        function toggleFavorite(i) { if (favorites.includes(i)) favorites = favorites.filter(x => x !== i); else favorites.push(i); saveData(); renderFavorites(); renderSites(); }
         function renderFavorites() {
             favBar.innerHTML = "";
             favorites.forEach((idx, pos) => {
-                const s = sites[idx];
-                if (!s) return;
-
-                const d = document.createElement("div");
-                d.className = "fav-item";
-                d.draggable = true;
-
+                const s = sites[idx]; if (!s) return;
+                const d = document.createElement("div"); d.className = "fav-item"; d.draggable = true;
                 d.ondragstart = () => dragFavIndex = pos;
                 d.ondragover = e => e.preventDefault();
-                d.ondrop = e => {
-                    if (dragFavIndex === null) return;
-                    const mv = favorites.splice(dragFavIndex, 1)[0];
-                    favorites.splice(pos, 0, mv);
-                    dragFavIndex = null;
-                    saveData(); renderFavorites();
-                };
-
-                d.innerHTML = `
-   ${getIcon(s.url)}
-   <a href="${s.url}" target="_blank">${s.name}</a>
-   <button onclick="toggleFavorite(${idx})">❌</button>
-  `;
+                d.ondrop = e => { if (dragFavIndex === null) return; const mv = favorites.splice(dragFavIndex, 1)[0]; favorites.splice(pos, 0, mv); dragFavIndex = null; saveData(); renderFavorites(); };
+                d.innerHTML = `${getIcon(s.url)} <a href="${s.url}" target="_blank">${s.name}</a> <button onclick="toggleFavorite(${idx})">❌</button>`;
                 favBar.appendChild(d);
             });
         }
 
-        /* ===== 그룹 패널 ===== */
         function renderGroupPanel() {
             groupPanel.innerHTML = "";
             groups.forEach((g, idx) => {
@@ -479,134 +419,96 @@
                 div.className = "group-item" + (g === selectedGroup ? " active" : "");
                 div.textContent = g;
                 div.draggable = true;
-
                 div.onclick = () => { selectedGroup = g; renderAll(); };
-
                 div.ondragover = e => e.preventDefault();
                 div.ondrop = e => {
-                    if (dragSiteIndex !== null) {
-                        sites[dragSiteIndex].group = g;
-                        dragSiteIndex = null;
-                        saveData(); renderAll();
-                    }
-                    if (dragGroupIndex !== null) {
-                        const d = groups.splice(dragGroupIndex, 1)[0];
-                        groups.splice(idx, 0, d);
-                        dragGroupIndex = null;
-                        saveData(); renderAll();
-                    }
+                    if (dragSiteIndex !== null) { sites[dragSiteIndex].group = g; dragSiteIndex = null; saveData(); renderAll(); }
+                    if (dragGroupIndex !== null) { const d = groups.splice(dragGroupIndex, 1)[0]; groups.splice(idx, 0, d); dragGroupIndex = null; saveData(); renderAll(); }
                 };
                 div.ondragstart = () => dragGroupIndex = idx;
-
                 groupPanel.appendChild(div);
             });
         }
 
-        /* ===== 사이트 목록 ===== */
         function renderSites() {
             currentGroupTitle.textContent = "📁 " + (selectedGroup || "");
             siteList.innerHTML = "";
-
             sites.forEach((s, i) => {
                 if (s.group !== selectedGroup) return;
-
-                const div = document.createElement("div");
-                div.className = "site";
-                div.draggable = true;
-
+                const div = document.createElement("div"); div.className = "site"; div.draggable = true;
                 div.ondragstart = () => dragSiteIndex = i;
-
-                div.ondragover = e => {
-                    e.preventDefault();
-                    div.classList.add("drag-over");
-                };
+                div.ondragover = e => { e.preventDefault(); div.classList.add("drag-over"); };
                 div.ondragleave = () => div.classList.remove("drag-over");
-
                 div.ondrop = e => {
                     e.stopPropagation();
                     div.classList.remove("drag-over");
                     if (dragSiteIndex === null || dragSiteIndex === i) return;
-
                     const moved = sites.splice(dragSiteIndex, 1)[0];
                     sites.splice(i, 0, moved);
-
-                    favorites = favorites.map(idx => {
-                        if (idx === dragSiteIndex) return i;
-                        if (dragSiteIndex < i && idx > dragSiteIndex && idx <= i) return idx - 1;
-                        if (dragSiteIndex > i && idx < i && idx >= i) return idx + 1;
-                        return idx;
-                    });
-
+                    favorites = favorites.map(idx => { if (idx === dragSiteIndex) return i; if (dragSiteIndex < i && idx > dragSiteIndex && idx <= i) return idx - 1; if (dragSiteIndex > i && idx < i && idx >= i) return idx + 1; return idx; });
                     dragSiteIndex = null;
                     saveData();
                     renderSites();
                     renderFavorites();
                 };
-
                 const favMark = favorites.includes(i) ? "⭐" : "☆";
-
-                div.innerHTML = `
-   ${getIcon(s.url)}
-   <a href="${s.url}" target="_blank">${s.name}</a>
-   <a class="site-url" href="${s.url}" target="_blank">${s.url}</a>
-   <button onclick="toggleFavorite(${i})">${favMark}</button>
-   <button onclick="editSite(${i})">수정</button>
-   <button onclick="deleteSite(${i})">삭제</button>
-  `;
-
+                div.innerHTML = `${getIcon(s.url)} <a href="${s.url}" target="_blank">${s.name}</a> <a class="site-url" href="${s.url}" target="_blank">${s.url}</a> <button onclick="toggleFavorite(${i})">${favMark}</button> <button onclick="editSite(${i})">수정</button> <button onclick="deleteSite(${i})">삭제</button>`;
                 siteList.appendChild(div);
             });
         }
 
-        /* ===== 옵션 ===== */
         function renderGroupOptions() {
             groupSelect.innerHTML = "";
-            groups.forEach(g => {
-                const o = document.createElement("option");
-                o.value = g; o.textContent = g;
-                groupSelect.appendChild(o);
-            });
+            groups.forEach(g => { const o = document.createElement("option"); o.value = g; o.textContent = g; groupSelect.appendChild(o); });
         }
 
-        /* ===== 전체 ===== */
-        function renderAll() {
-            if (!selectedGroup) selectedGroup = groups[0];
-            renderGroupOptions();
-            renderGroupPanel();
-            renderSites();
-            renderFavorites();
+        function renderAll() { 
+            if (groups.length === 0) groups.push("기본");
+            if (!selectedGroup) selectedGroup = groups[0]; 
+            renderGroupOptions(); 
+            renderGroupPanel(); 
+            renderSites(); 
+            renderFavorites(); 
         }
 
-        /* ===== 초기화 ===== */
-        loadData();
-        if (groups.length === 0) groups.push("기본");
-        renderAll();
-
+        function toggleTheme() {
+            darkMode = !darkMode;
+            applyTheme();
+            saveData();
+        }
+        function applyTheme() {
+            if (darkMode) {
+                document.documentElement.style.setProperty("--bg-color", "rgba(0,0,0,0.55)");
+                document.documentElement.style.setProperty("--text-color", "#eee");
+                document.documentElement.style.setProperty("--link-color", "#ffd966");
+            } else {
+                document.documentElement.style.setProperty("--bg-color", "rgba(245,247,250,0.55)");
+                document.documentElement.style.setProperty("--text-color", "#111");
+                document.documentElement.style.setProperty("--link-color", "#053bc5");
+            }
+        }
     </script>
 
     <script>
-        // 1. 우클릭 메뉴 차단 (알람 없이)
-        document.addEventListener('contextmenu', function (e) {
+        document.addEventListener('contextmenu', e => e.preventDefault(), false);
+        document.addEventListener('selectstart', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             e.preventDefault();
         }, false);
 
-        // 2. 드래그 및 텍스트 선택 차단 (소스 복사 방지)
-        document.addEventListener('selectstart', function (e) {
-            e.preventDefault();
-        }, false);
-
-        // 3. 주요 보안 단축키 차단
         document.onkeydown = function (e) {
-            // F12 (개발자 도구) 차단
             if (e.keyCode == 123) return false;
-
-            // Ctrl+U (소스 보기), Ctrl+S (저장), Ctrl+Shift+I (검사) 차단
-            if (e.ctrlKey && (e.keyCode == 'U'.charCodeAt(0) || e.keyCode == 'S'.charCodeAt(0) || (e.shiftKey && e.keyCode == 'I'.charCodeAt(0)))) {
-                return false;
+            if (e.ctrlKey) {
+                const target = e.target.tagName;
+                if ((target === 'INPUT' || target === 'TEXTAREA') && e.keyCode == 65) return true; 
+                if (e.keyCode == 'U'.charCodeAt(0) || 
+                    e.keyCode == 'S'.charCodeAt(0) || 
+                    (e.shiftKey && e.keyCode == 'I'.charCodeAt(0))) {
+                    return false;
+                }
             }
         };
     </script>
 
 </body>
-
 </html>
