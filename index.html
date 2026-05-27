@@ -303,6 +303,102 @@
         const restoreFile = document.getElementById('restoreFile');
         const bgFile = document.getElementById('bgFile');
 
+        // 이름 입력 시 URL 자동완성을 위한 매칭표
+        // 키워드를 추가/수정하면 자동완성 대상이 변경됩니다.
+        // 별칭은 "키워드1|키워드2" 형태로 작성하면 둘 중 하나만 입력해도 매칭됩니다.
+        const NAME_URL_MAP = {
+            // Common / Search
+            "google|구글": "https://www.google.com/",
+            gmail: "https://mail.google.com",
+            "google 문서": "https://docs.google.com/",
+            "naver|네이버": "https://www.naver.com",
+            "네이버맵|네이버지도": "https://map.naver.com",
+            "구글맵": "https://www.google.com/maps",
+            "youtube|유튜브": "https://www.youtube.com/",
+            chatgpt: "https://chatgpt.com/",
+            "gemini|제미나이": "https://gemini.google.com/app",
+            claude: "https://claude.ai",
+
+            // GM Portal / AI
+            "gmone|socrates": "https://gmone.gm.com/",
+            "it": "https://gm.service-now.com/esc",
+            peoplefinder: "https://peoplefinder.gm.com",
+            "recognition|gm recognition": "https://gm.achievers.com/home",
+            "smart search": "https://smartsearch.gm.com/",
+            "glean|gm glean": "https://gm.glean.com",
+            "copilot chat": "https://m365.cloud.microsoft/chat/",
+            "copilot studio": "https://copilotstudio.microsoft.com/",
+            "github gm": "https://github.com/enterprises/generalmotors",
+            "gm github repository link": "https://github.com/enterprises/generalmotors",
+            "github enterprise 계정신청": "https://gm.service-now.com/esc?id=sc_cat_item&sys_id=aa470c6e6c52ced451b162ed93ef621d&table=sc_cat_item&searchTerm=github",
+            "github copilot 신청": "https://gm.service-now.com/esc?id=sc_cat_item&sys_id=ad2a41b394b6c6504c4e7813fa9bed38&table=sc_cat_item&searchTerm=github",
+            "copilot studio 라이센스 신청": "https://generalmotors.sharepoint.com/sites/pphub/Lists/Copilot%20Studio%20License%20Request/AllItems.aspx",
+
+            // GM Design / Quality
+            "emerge|ecr": "https://emerge.gm.com/",
+            gmlogic: "https://gmlogic.gm.com/",
+            "apm": "https://apmclone.gm.com/apm/",
+            teamcenter: "https://generalmotors.sharepoint.com/sites/TcAE/Pages/default.aspx",
+            gdm: "https://documents.gm.com/globaldocs/browse?id=2200001306230000001",
+            "esci|icd": "https://esci.cld.gm.com/ui/",
+            "service information": "https://sporef.xw.gm.com/weblogic/sporef/verifyGPLDaccess?appParm=si",
+            "p2p aspera": "https://p2pfd.gm.com/",
+            "p2p approval": "https://generalmotors.sharepoint.com/sites/kor_dae_en/edt/workflow/datashare/SitePages/GMTCK%20VE%20Math%20Data%20Management.aspx",
+            etracktool: "https://etracktool.gm.com/ett",
+            spes: "https://spes.gm.com",
+            tvms: "https://dash.gm.com/tvms/",
+            "ewo history": "https://app.powerbi.com/groups/f3ef2b12-b8eb-4445-94b9-37f08bf87283/rdlreports/8fb05904-578a-414f-b440-4359a13936d5?ctid=5de110f8-2e0f-4d45-891d-bcf2218e253d&experience=power-bi",
+            ptr: "https://generalmotors-my.sharepoint.com/:w:/g/personal/kzyp0c_apa_corp_gm_com/IQBUIyBOETs2RJ0OA5f8wYEQAU28ecgYtd184w1uwYMkrUE?CID=09a09d56-225c-5b77-ba73-559e454155d2",
+            sqms: "https://sqms.gm.com",
+            gwm: "https://gwmtoolkit.gm.com/gwm_web/sitemap",
+            spcr: "https://generalmotors.sharepoint.com/sites/spcr/Lists/Active%20SPCRs/AllItems.aspx",
+            partlink: "https://partlink.gm.com/",
+            "prts|jira": "https://prts.atlassian.net/jira/",
+            mers: "https://mers.gm.com",
+            "trackergart|tgart": "https://generalmotors.sharepoint.com/sites/tGART/SitePages/TrackerGart.aspx",
+            "gmk qrd auto tool|qrd tool": "https://generalmotors.sharepoint.com/sites/68716-225769/Shared%20Documents/Forms/AllItems.aspx?newTargetListUrl=%2Fsites%2F68716%2D225769%2FShared%20Documents&viewpath=%2Fsites%2F68716%2D225769%2FShared%20Documents%2FForms%2FAllItems%2Easpx&id=%2Fsites%2F68716%2D225769%2FShared%20Documents%2FQRD%2F8%2E%20QRD%20Auto%20Tool%20%EC%A4%91%EC%9A%94%20%28%EA%B9%80%EC%A2%85%ED%95%99%29&viewid=1b0fddba%2D87a8%2D4683%2D88d6%2Dc6e7fa6c16f0&CT=1771809714490&OR=OWA%2DNT%2DMail&CID=6036ece2%2Dc527%2D8539%2D572c%2D8277af7a4876",
+            "gmio wsi|gmio wsi power bi": "https://app.powerbi.com/groups/1c50ea78-e634-4185-be2d-25daa7b8d251/list?experience=power-bi",
+            dfss: "https://generalmotors.sharepoint.com/sites/DFSS1/SitePages/DFSS.aspx",
+
+            // GM Collaboration / Learning
+            "naeil|내일": "https://generalmotors.sharepoint.com/sites/tckin/SitePages/InnovationPortal.aspx",
+            "naeil project": "https://generalmotors.sharepoint.com/sites/tckin/Lists/Activities/AllItems.aspx?as=json&isAscending=false&sortField=MaterialLink&viewid=2bed33ac%2D5904%2D45dc%2D8e4e%2D9031926c1072",
+            pectory: "https://generalmotors.sharepoint.com/sites/gmtckpec/SitePages/Home.aspx",
+            "직급검색": "https://generalmotors.sharepoint.com/sites/gmtckpec/SitePages/Position.aspx",
+            "nx course list": "https://generalmotors.sharepoint.com/sites/plmsystemstraining/Lists/NX%20REF%20Course%20List/AllItems.aspx",
+            "plm system video channel": "https://video.gm.com/channel/MATH%2BBASED%2BTRAINING%2BCHANNEL/264175202",
+            "gm learning": "https://mylearning.gm.com",
+            "방문자|반출|visitor": "https://epass.gm.com/#/",
+            "ptr관리대장|ptr ledger": "https://generalmotors-my.sharepoint.com/:w:/g/personal/kzyp0c_apa_corp_gm_com/IQBUIyBOETs2RJ0OA5f8wYEQAU28ecgYtd184w1uwYMkrUE"
+        };
+
+        function findMappedUrlByName(name) {
+            const keyword = (name || "").trim().toLowerCase();
+            if (!keyword) return "";
+
+            const inputTokens = keyword.split(/\s+/).filter(Boolean);
+
+            for (const [rawKey, url] of Object.entries(NAME_URL_MAP)) {
+                const aliases = rawKey.toLowerCase().split("|").map(x => x.trim()).filter(Boolean);
+
+                // exact: "emerge" 또는 "ecr" 입력
+                if (aliases.includes(keyword)) return url;
+
+                // token: "open emerge now"처럼 단어 중 하나가 alias와 일치
+                if (inputTokens.some(t => aliases.includes(t))) return url;
+
+                // include: alias가 입력 문자열 일부로 포함된 경우
+                if (aliases.some(a => keyword.includes(a))) return url;
+            }
+
+            return "";
+        }
+
+        nameInput.addEventListener("input", () => {
+            const mappedUrl = findMappedUrlByName(nameInput.value);
+            if (mappedUrl) urlInput.value = mappedUrl;
+        });
+
         function getSearchText() { return encodeURIComponent(searchInput.value.trim()); }
         function searchGoogle() { const q = getSearchText(); if (!q) return; window.open("https://www.google.com/search?q=" + q, "_blank"); }
         function searchNaver() { const q = getSearchText(); if (!q) return; window.open("https://search.naver.com/search.naver?query=" + q, "_blank"); }
